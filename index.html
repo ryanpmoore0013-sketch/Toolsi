@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolsy — find the right AI tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFEAE0;
+    --paper-raised:#F6F2E8;
+    --ink:#1E2A22;
+    --ink-soft:#54594F;
+    --ink-faint:#8B8A7C;
+    --hair:#D9D2C0;
+    --hair-strong:#C7BFA9;
+    --brass:#A8752E;
+    --brass-deep:#7A5620;
+    --slate-deep:#2B4155;
+    --err:#8C3B2E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 24px 96px;
+  }
+  header{
+    padding:56px 0 32px;
+    text-align:center;
+  }
+  .mark{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--brass-deep);
+    margin:0 0 22px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(28px, 6vw, 40px);
+    line-height:1.2;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1.5;
+    max-width:420px;
+    margin:0 auto;
+  }
+  form{
+    margin-top:36px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--paper-raised);
+    border:1px solid var(--hair-strong);
+    border-radius:2px;
+    padding:6px 6px 6px 18px;
+  }
+  form:focus-within{ border-color:var(--brass); }
+  input[type="text"]{
+    flex:1;
+    border:none;
+    background:transparent;
+    outline:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:16px;
+    color:var(--ink);
+    padding:12px 0;
+  }
+  input[type="text"]::placeholder{ color:var(--ink-faint); }
+  button.go{
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:12px 20px;
+    border-radius:2px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  button.go:hover{ background:var(--brass-deep); }
+  button.go:disabled{ opacity:0.5; cursor:default; }
+
+  .tries{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  .try{
+    font-size:13px;
+    color:var(--ink-soft);
+    border:1px solid var(--hair-strong);
+    background:transparent;
+    padding:6px 12px;
+    border-radius:20px;
+    cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+  }
+  .try:hover{ border-color:var(--brass); color:var(--brass-deep); }
+
+  #status{
+    margin-top:56px;
+    text-align:center;
+    color:var(--ink-faint);
+    font-size:14px;
+    display:none;
+  }
+  #status.show{ display:block; }
+  .dots::after{
+    content:'';
+    display:inline-block;
+    width:1em;
+    text-align:left;
+    animation: dots 1.2s steps(4,end) infinite;
+  }
+  @keyframes dots{
+    0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';}
+  }
+
+  #error{
+    margin-top:56px;
+    text-align:center;
+    color:var(--err);
+    font-size:14px;
+    display:none;
+  }
+  #error.show{ display:block; }
+
+  #results{ margin-top:48px; display:none; }
+  #results.show{ display:block; }
+
+  .results-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:1px solid var(--hair);
+    padding-bottom:14px;
+    margin-bottom:4px;
+  }
+  .results-head .q{ font-size:13px; color:var(--ink-faint); }
+  .results-head .q strong{ color:var(--ink); font-weight:500; }
+
+  .entry{
+    display:flex;
+    gap:18px;
+    padding:26px 0;
+    border-bottom:1px solid var(--hair);
+  }
+  .entry:last-child{ border-bottom:none; }
+
+  .rank{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    color:var(--hair-strong);
+    width:28px;
+    flex-shrink:0;
+    padding-top:2px;
+  }
+  .entry.top .rank{ color:var(--brass); }
+
+  .entry-body{ flex:1; min-width:0; }
+  .entry-top-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .tool-name{ font-family:'Fraunces', serif; font-weight:500; font-size:19px; }
+  .category{
+    font-size:12px;
+    color:var(--slate-deep);
+    background:#E4EBEF;
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .why{
+    margin:8px 0 10px;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:52ch;
+  }
+  .sources{ display:flex; flex-wrap:wrap; gap:14px; }
+  .sources span{ font-size:12.5px; color:var(--brass-deep); }
+
+  .disclaimer{
+    margin-top:36px;
+    font-size:12px;
+    color:var(--ink-faint);
+    text-align:center;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="mark">toolsy</p>
+    <h1>What are you trying to do?</h1>
+    <p class="sub">Describe a task, get the AI tools best suited for it — ranked, reasoned, and vendor-neutral.</p>
+
+    <form id="searchForm">
+      <input type="text" id="queryInput" placeholder="e.g. clone a voice for a podcast intro" autocomplete="off" maxlength="300">
+      <button type="submit" class="go" id="goBtn">Find tools</button>
+    </form>
+
+    <div class="tries">
+      <button class="try" data-q="summarize a 200-page pdf">Summarize a long PDF</button>
+      <button class="try" data-q="generate a podcast voice">Generate a podcast voice</button>
+      <button class="try" data-q="write unit tests for python code">Write Python unit tests</button>
+    </div>
+  </header>
+
+  <div id="status"><span class="dots">Searching current tools</span></div>
+  <div id="error"></div>
+  <div id="results"></div>
+
+  <p class="disclaimer" id="disclaimer" style="display:none;">Results are generated by AI with live web search and may not always be complete or current. Verify before relying on them.</p>
+</div>
+
+<script>
+const form = document.getElementById('searchForm');
+const input = document.getElementById('queryInput');
+const goBtn = document.getElementById('goBtn');
+const status = document.getElementById('status');
+const errorBox = document.getElementById('error');
+const results = document.getElementById('results');
+const disclaimer = document.getElementById('disclaimer');
+
+function renderResults(query, list){
+  const headHtml = `
+    <div class="results-head">
+      <span class="q">Best tools for <strong>${escapeHtml(query)}</strong></span>
+    </div>`;
+
+  const entriesHtml = list.map(r => `
+    <div class="entry ${r.rank === 1 ? 'top' : ''}">
+      <div class="rank">${r.rank}</div>
+      <div class="entry-body">
+        <div class="entry-top-row">
+          <span class="tool-name">${escapeHtml(r.name)}</span>
+          <span class="category">${escapeHtml(r.category || '')}</span>
+        </div>
+        <p class="why">${escapeHtml(r.why || '')}</p>
+        <div class="sources">
+          ${(r.sources || []).map(s => `<span>${escapeHtml(s)}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  results.innerHTML = headHtml + entriesHtml;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+async function runSearch(q){
+  if(!q || !q.trim()) return;
+
+  results.classList.remove('show');
+  errorBox.classList.remove('show');
+  disclaimer.style.display = 'none';
+  status.classList.add('show');
+  goBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q.trim() }),
+    });
+
+    const data = await res.json();
+    status.classList.remove('show');
+    goBtn.disabled = false;
+
+    if(!res.ok){
+      errorBox.textContent = data.error || 'Something went wrong. Try again.';
+      errorBox.classList.add('show');
+      return;
+    }
+
+    renderResults(data.query, data.results);
+    results.classList.add('show');
+    disclaimer.style.display = 'block';
+  } catch (err) {
+    status.classList.remove('show');
+    goBtn.disabled = false;
+    errorBox.textContent = 'Could not reach the server. Check your connection and try again.';
+    errorBox.classList.add('show');
+  }
+}
+
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  runSearch(input.value);
+});
+
+document.querySelectorAll('.try').forEach(btn => {
+  btn.addEventListener('click', () => {
+    input.value = btn.dataset.q;
+    runSearch(btn.dataset.q);
+  });
+});
+</script>
+</body>
+</html>
